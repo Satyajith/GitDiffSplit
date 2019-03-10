@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">SunflowerRepository</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="pullrequests_empty_msg">No open PullRequests available!</string>
+</resources>
