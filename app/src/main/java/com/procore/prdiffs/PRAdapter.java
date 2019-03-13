@@ -12,7 +12,12 @@ import com.procore.prdiffs.network.ApiInterface;
 import com.procore.prdiffs.network.RetrofitClient;
 
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -28,12 +33,10 @@ public class PRAdapter extends RecyclerView.Adapter<PRAdapter.PRViewHolder> {
     private List<PullRequest> prList;
     private Context context;
     private LayoutInflater mInflater;
-    private ApiInterface mApiInterface;
 
     public PRAdapter(List<PullRequest> prList, Context context) {
         this.prList = prList;
         this.context = context;
-        mApiInterface = RetrofitClient.getRetrofitInstance().create(ApiInterface.class);
         this.mInflater = LayoutInflater.from(context);
     }
 
@@ -49,8 +52,11 @@ public class PRAdapter extends RecyclerView.Adapter<PRAdapter.PRViewHolder> {
         final PullRequest current = prList.get(position);
 
         holder.prTitleTextView.setText(current.getTitle());
-        holder.prNumberTextView.setText(String.valueOf(current.getNumber()));
-        holder.prUsernameTextView.setText(current.getUser().getLogin());
+        String pNum = "# " + String.valueOf(current.getNumber());
+        String pUser = "by "+ current.getUser().getLogin();
+        holder.prNumberTextView.setText(pNum);
+        holder.prDate.setText(current.getCreatedAt());
+        holder.prUsernameTextView.setText(pUser);
     }
 
     @Override
@@ -58,7 +64,7 @@ public class PRAdapter extends RecyclerView.Adapter<PRAdapter.PRViewHolder> {
         return prList.size();
     }
 
-    class PRViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+    class PRViewHolder extends RecyclerView.ViewHolder {
 
         @BindView(R.id.pr_title_textView)
         TextView prTitleTextView;
@@ -66,42 +72,12 @@ public class PRAdapter extends RecyclerView.Adapter<PRAdapter.PRViewHolder> {
         TextView prNumberTextView;
         @BindView(R.id.pr_username_textView)
         TextView prUsernameTextView;
+        @BindView(R.id.pr_date_textView)
+        TextView prDate;
 
         PRViewHolder(@NonNull View itemView) {
             super(itemView);
             ButterKnife.bind(this, itemView);
-            itemView.setOnClickListener(this);
-        }
-
-        @Override
-        public void onClick(View v) {
-            getDiff(prList.get(getAdapterPosition()).getDiffUrl());
-            //Toast.makeText(context, prList.get(getAdapterPosition()).getDiffUrl(), Toast.LENGTH_LONG).show();
-        }
-
-        private void getDiff(String diffUrl) {
-            Call<ResponseBody> call = mApiInterface.getDiff(diffUrl);
-            call.enqueue(new Callback<ResponseBody>() {
-
-                @Override
-                public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                    if (response.isSuccessful()) {
-                        try {
-                            System.out.println(response.body().string() + call.request().url());
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    } else{
-                        System.out.println(call.request().url());
-                    }
-
-                }
-
-                @Override
-                public void onFailure(Call<ResponseBody> call, Throwable t) {
-                    t.printStackTrace();
-                }
-            });
         }
     }
 }

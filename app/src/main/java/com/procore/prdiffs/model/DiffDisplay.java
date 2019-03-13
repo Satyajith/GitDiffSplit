@@ -6,7 +6,6 @@ public class DiffDisplay {
         DIFF,
         HUNK_HEADER,
         LINE
-
     }
 
     private Object diffObj;

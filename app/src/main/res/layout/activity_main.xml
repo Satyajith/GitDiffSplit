@@ -6,10 +6,24 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appbar_main"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:theme="@style/ThemeOverlay.AppCompat.ActionBar">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar_main"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            app:popupTheme="@style/AppTheme.PopupOverlay" />
+    </com.google.android.material.appbar.AppBarLayout>
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/pr_list_recyclerView"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        android:layout_below="@id/appbar_main" />
 
     <TextView
         android:id="@+id/pr_list_empty_textView"
@@ -17,7 +31,14 @@
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
         android:text="@string/pullrequests_empty_msg"
-        android:visibility="gone"
-        />
+        android:visibility="gone" />
+
+    <ImageView
+        android:id="@+id/pr_list_octocat_imageView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:contentDescription="@string/octocat"
+        android:src="@drawable/octocat" />
 
 </RelativeLayout>

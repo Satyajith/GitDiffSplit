@@ -1,23 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="5dp">
+    android:layout_marginStart="@dimen/row_horizontal_margin"
+    android:layout_marginEnd="@dimen/row_horizontal_margin"
+    app:cardUseCompatPadding="true">
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="10dp">
+        android:layout_marginStart="@dimen/row_horizontal_margin"
+        android:layout_marginEnd="@dimen/row_horizontal_margin"
+        android:padding="5dp">
 
         <TextView
             android:id="@+id/pr_title_textView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:ellipsize="end"
-            android:maxLines="2"
-            android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium" />
+            android:maxLines="1"
+            android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium"
+            android:textColor="@color/md_black_1000"
+            android:textStyle="bold" />
 
         <LinearLayout
+            android:id="@+id/pr_num_date_linearL"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@id/pr_title_textView"
@@ -27,16 +35,26 @@
                 android:id="@+id/pr_number_textView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textAppearance="@style/Base.TextAppearance.AppCompat.Small" />
+                android:textAppearance="@style/Base.TextAppearance.AppCompat.Small"
+                android:textColor="@color/md_grey_800" />
 
             <TextView
-                android:id="@+id/pr_username_textView"
+                android:id="@+id/pr_date_textView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="10dp"
-                android:textAppearance="@style/Base.TextAppearance.AppCompat.Small" />
+                android:textAppearance="@style/Base.TextAppearance.AppCompat.Small"
+                android:textColor="@color/md_grey_800" />
 
         </LinearLayout>
+
+        <TextView
+            android:id="@+id/pr_username_textView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/pr_num_date_linearL"
+            android:textAppearance="@style/Base.TextAppearance.AppCompat.Small"
+            android:textColor="@color/md_grey_800" />
 
     </RelativeLayout>
 </androidx.cardview.widget.CardView>
