@@ -1,21 +1,15 @@
 package com.procore.prdiffs;
 
 import android.content.Context;
+import android.text.format.DateUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.procore.prdiffs.model.PullRequest;
-import com.procore.prdiffs.network.ApiInterface;
-import com.procore.prdiffs.network.RetrofitClient;
-
-import java.io.IOException;
-import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
 
@@ -23,10 +17,6 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import okhttp3.ResponseBody;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 public class PRAdapter extends RecyclerView.Adapter<PRAdapter.PRViewHolder> {
 
@@ -53,9 +43,13 @@ public class PRAdapter extends RecyclerView.Adapter<PRAdapter.PRViewHolder> {
 
         holder.prTitleTextView.setText(current.getTitle());
         String pNum = "# " + String.valueOf(current.getNumber());
-        String pUser = "by "+ current.getUser().getLogin();
+        String pUser = "by " + current.getUser().getLogin();
         holder.prNumberTextView.setText(pNum);
-        holder.prDate.setText(current.getCreatedAt());
+        try {
+            holder.prDate.setText(timeAgo(current.getCreatedAt()).toString());
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
         holder.prUsernameTextView.setText(pUser);
     }
 
@@ -79,5 +73,14 @@ public class PRAdapter extends RecyclerView.Adapter<PRAdapter.PRViewHolder> {
             super(itemView);
             ButterKnife.bind(this, itemView);
         }
+    }
+
+    public CharSequence timeAgo(String input) throws ParseException {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+        sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
+        long time = sdf.parse(input).getTime();
+        long now = System.currentTimeMillis();
+
+        return DateUtils.getRelativeTimeSpanString(time, now, DateUtils.MINUTE_IN_MILLIS);
     }
 }

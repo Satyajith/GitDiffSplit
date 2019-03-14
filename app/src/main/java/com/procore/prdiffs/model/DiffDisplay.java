@@ -1,11 +1,13 @@
 package com.procore.prdiffs.model;
 
+/* Model class used to classify diff split list*/
 public class DiffDisplay {
 
     public enum DiffType {
         DIFF,
         HUNK_HEADER,
-        LINE
+        LINE,
+        SAME_LINE
     }
 
     private Object diffObj;

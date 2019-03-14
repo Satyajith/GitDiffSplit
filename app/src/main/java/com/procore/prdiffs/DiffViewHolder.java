@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
+/* ViewHolder for from and to split adapters */
 class DiffViewHolder extends RecyclerView.ViewHolder {
 
     @BindView(R.id.diff_disp_textView)

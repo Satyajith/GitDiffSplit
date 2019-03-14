@@ -3,6 +3,7 @@ package com.procore.prdiffs.model;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
+/* Model class for pull request items*/
 public class PullRequest {
 
     @SerializedName("number")

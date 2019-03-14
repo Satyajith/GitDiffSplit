@@ -4,6 +4,7 @@ import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
 
+/* To return retrofit instance*/
 public class RetrofitClient {
 
     private static Retrofit retrofit;

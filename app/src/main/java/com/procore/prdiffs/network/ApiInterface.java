@@ -10,9 +10,10 @@ import retrofit2.http.GET;
 import retrofit2.http.Query;
 import retrofit2.http.Url;
 
+/* interface with all necessary api calls */
 public interface ApiInterface {
 
-    @GET("aws-amplify/aws-sdk-ios/pulls")
+    @GET("boto/boto3/pulls")
     Single<List<PullRequest>> getPullRequests(@Query("state") String state,
                                               @Query("sort") String created,
                                               @Query("direction") String direction);

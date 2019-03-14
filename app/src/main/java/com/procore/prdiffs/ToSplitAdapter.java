@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import io.reflectoring.diffparser.api.model.Hunk;
 import io.reflectoring.diffparser.api.model.Line;
 
+/* Adapter class to display the to(right) part of diff */
 public class ToSplitAdapter extends RecyclerView.Adapter<DiffViewHolder> {
 
     private List<DiffDisplay> dList;
@@ -48,7 +49,7 @@ public class ToSplitAdapter extends RecyclerView.Adapter<DiffViewHolder> {
                 break;
             case HUNK_HEADER:
                 Hunk h = (Hunk) current.getDiffObj();
-                holder.textView.setText(h.getToFileRange().getLineStart()+", "+h.getToFileRange().getLineCount());
+                holder.textView.setText("@@ +"+h.getToFileRange().getLineStart()+", "+h.getToFileRange().getLineCount());
                 holder.textView.setTextColor(context.getResources().getColor(R.color.md_grey_800));
                 holder.itemView.setBackgroundColor(context.getResources().getColor(R.color.md_blue_grey_100));
                 break;
@@ -69,6 +70,10 @@ public class ToSplitAdapter extends RecyclerView.Adapter<DiffViewHolder> {
                         break;
                 }
                 holder.textView.setTextColor(context.getResources().getColor(R.color.md_black_1000));
+                break;
+            case SAME_LINE:
+                holder.itemView.setBackgroundColor(context.getResources().getColor(R.color.md_white_1000));
+                holder.textView.setText("");
                 break;
         }
     }

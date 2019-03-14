@@ -31,7 +31,9 @@ import java.util.concurrent.ExecutionException;
 import static com.procore.prdiffs.model.DiffDisplay.DiffType.DIFF;
 import static com.procore.prdiffs.model.DiffDisplay.DiffType.HUNK_HEADER;
 import static com.procore.prdiffs.model.DiffDisplay.DiffType.LINE;
+import static com.procore.prdiffs.model.DiffDisplay.DiffType.SAME_LINE;
 
+/* Activity that has logic to display and host the diff split views */
 public class DiffSplitActivity extends AppCompatActivity {
 
     private static final String TAG = DiffSplitActivity.class.getSimpleName();
@@ -60,7 +62,16 @@ public class DiffSplitActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        int fromCount;
+        /*
+        Below code is to generate a list to display from(left) side.
+        1. If Current line == TO, the to_ct gets incremented
+        2. If Current line == FROM, the from_ct gets incremented and current object is added to the list
+        3. If current line type is NEUTRAL, checks if(from_ct < to_ct), (to_ct - from_ct) is calculated
+        and adds SAME_LINE Type objects to the list in a loop to display empty lines
+        4. Separate checks and implementation if end of line is met
+        */
+
+        int fromLineCount;
         for (Diff dif : diffList) {
             DiffDisplay disp = new DiffDisplay();
             disp.setDiffObj(splitFileNames(dif.getFromFileName()));
@@ -72,23 +83,86 @@ public class DiffSplitActivity extends AppCompatActivity {
                 disp1.setDiffType(HUNK_HEADER);
                 disp1.setDiffObj(h);
                 disp.setLineNum("");
-                fromCount = h.getFromFileRange().getLineStart();
+                fromLineCount = h.getFromFileRange().getLineStart();
                 fromDisplay.add(disp1);
-                for (Line line : h.getLines()) {
+                int from_ct = 0, to_ct = 0;
+                for (int i = 0; i < h.getLines().size(); i++) {
+                    Line line = h.getLines().get(i);
                     DiffDisplay disp2 = new DiffDisplay();
                     disp2.setDiffType(LINE);
-                    disp2.setDiffObj(line);
-                    if (line.getLineType() != Line.LineType.TO) {
-                        disp2.setLineNum(String.valueOf(fromCount));
-                        fromCount++;
-                    } else
-                        disp2.setLineNum("");
-                    fromDisplay.add(disp2);
+                    if (i != h.getLines().size() - 1) {
+                        switch (line.getLineType()) {
+                            case TO:
+                                to_ct++;
+                                break;
+                            case FROM:
+                                from_ct++;
+                                disp2.setDiffObj(line);
+                                disp2.setLineNum(String.valueOf(fromLineCount));
+                                fromLineCount++;
+                                fromDisplay.add(disp2);
+                                break;
+                            case NEUTRAL:
+                                if (from_ct < to_ct) {
+                                    for (int k = 0; k < (to_ct - from_ct); k++) {
+                                        DiffDisplay disp3 = new DiffDisplay();
+                                        disp3.setDiffType(SAME_LINE);
+                                        disp3.setDiffObj(" ");
+                                        disp3.setLineNum("");
+                                        fromDisplay.add(disp3);
+                                    }
+                                }
+                                from_ct = 0;
+                                to_ct = 0;
+                                disp2.setDiffObj(line);
+                                disp2.setLineNum(String.valueOf(fromLineCount));
+                                fromLineCount++;
+                                fromDisplay.add(disp2);
+                                break;
+                        }
+                    } else {
+                        switch (line.getLineType()) {
+                            case TO:
+                                to_ct++;
+                                break;
+                            case FROM:
+                                from_ct++;
+                                disp2.setDiffObj(line);
+                                disp2.setLineNum(String.valueOf(fromLineCount));
+                                fromDisplay.add(disp2);
+                                break;
+                            case NEUTRAL:
+                                disp2.setDiffObj(line);
+                                disp2.setLineNum(String.valueOf(fromLineCount));
+                                fromDisplay.add(disp2);
+                                break;
+                        }
+                        if (from_ct < to_ct) {
+                            for (int k = 0; k < (to_ct - from_ct); k++) {
+                                DiffDisplay disp3 = new DiffDisplay();
+                                disp3.setDiffType(SAME_LINE);
+                                disp3.setDiffObj(" ");
+                                disp3.setLineNum("");
+                                fromDisplay.add(disp3);
+                            }
+                        }
+                        from_ct = 0;
+                        to_ct = 0;
+                    }
                 }
             }
         }
 
-        int toCount;
+
+        /*
+        Below code is to generate a list to display to(right) side.
+        1. If Current line == TO, the to_ct gets incremented and current object is added to the list
+        2. If Current line == FROM, the from_ct gets incremented
+        3. If current line type is NEUTRAL, checks if(to_ct < from_ct), (from_ct - to_ct) is calculated
+        and adds SAME_LINE Type objects to the list in a loop to display empty lines
+        4. Separate checks and implementation if end of line is met
+        */
+        int toLineCount;
         for (Diff dif : diffList) {
             DiffDisplay disp = new DiffDisplay();
             if (!splitFileNames(dif.getFromFileName()).equals(splitFileNames(dif.getToFileName())))
@@ -103,18 +177,72 @@ public class DiffSplitActivity extends AppCompatActivity {
                 disp1.setDiffType(HUNK_HEADER);
                 disp1.setDiffObj(h);
                 disp1.setLineNum("");
-                toCount = h.getToFileRange().getLineStart();
+                toLineCount = h.getToFileRange().getLineStart();
                 toDisplay.add(disp1);
-                for (Line line : h.getLines()) {
+                int from_ct = 0, to_ct = 0;
+                for (int i = 0; i < h.getLines().size(); i++) {
+                    Line line = h.getLines().get(i);
                     DiffDisplay disp2 = new DiffDisplay();
                     disp2.setDiffType(LINE);
-                    disp2.setDiffObj(line);
-                    if (line.getLineType() != Line.LineType.FROM) {
-                        disp2.setLineNum(String.valueOf(toCount));
-                        toCount++;
-                    } else
-                        disp2.setLineNum("");
-                    toDisplay.add(disp2);
+                    if (i != h.getLines().size() - 1) {
+                        switch (line.getLineType()) {
+                            case TO:
+                                to_ct++;
+                                disp2.setDiffObj(line);
+                                disp2.setLineNum(String.valueOf(toLineCount));
+                                toLineCount++;
+                                toDisplay.add(disp2);
+                                break;
+                            case FROM:
+                                from_ct++;
+                                break;
+                            case NEUTRAL:
+                                if (to_ct < from_ct) {
+                                    for (int k = 0; k < (from_ct - to_ct); k++) {
+                                        DiffDisplay disp3 = new DiffDisplay();
+                                        disp3.setDiffType(SAME_LINE);
+                                        disp3.setDiffObj(" ");
+                                        disp3.setLineNum("");
+                                        toDisplay.add(disp3);
+                                    }
+                                }
+                                from_ct = 0;
+                                to_ct = 0;
+                                disp2.setDiffObj(line);
+                                disp2.setLineNum(String.valueOf(toLineCount));
+                                toLineCount++;
+                                toDisplay.add(disp2);
+                                break;
+                        }
+                    } else {
+                        switch (line.getLineType()) {
+                            case TO:
+                                to_ct++;
+                                disp2.setDiffObj(line);
+                                disp2.setLineNum(String.valueOf(toLineCount));
+                                toDisplay.add(disp2);
+                                break;
+                            case FROM:
+                                from_ct++;
+                                break;
+                            case NEUTRAL:
+                                disp2.setDiffObj(line);
+                                disp2.setLineNum(String.valueOf(toLineCount));
+                                toDisplay.add(disp2);
+                                break;
+                        }
+                        if (to_ct < from_ct) {
+                            for (int k = 0; k < (from_ct - to_ct); k++) {
+                                DiffDisplay disp3 = new DiffDisplay();
+                                disp3.setDiffType(SAME_LINE);
+                                disp3.setDiffObj(" ");
+                                disp3.setLineNum("");
+                                toDisplay.add(disp3);
+                            }
+                        }
+                        from_ct = 0;
+                        to_ct = 0;
+                    }
                 }
             }
         }
@@ -141,7 +269,8 @@ public class DiffSplitActivity extends AppCompatActivity {
         return ar[1];
     }
 
-    private static class ReadDiffFileTask extends AsyncTask<Void, Void, List<Diff>>{
+    // To read the diff.txt file and parse it using DiffParser to retrieve list if Diffs.
+    private static class ReadDiffFileTask extends AsyncTask<Void, Void, List<Diff>> {
         @Override
         protected List<Diff> doInBackground(Void... voids) {
             InputStream fiStream;

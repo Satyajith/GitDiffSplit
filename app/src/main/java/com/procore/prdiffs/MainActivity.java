@@ -1,6 +1,7 @@
 package com.procore.prdiffs;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
@@ -25,10 +26,12 @@ import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.material.snackbar.Snackbar;
 import com.procore.prdiffs.model.PullRequest;
@@ -47,6 +50,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+/* This is the launcher activity that displays list if PullRequests from the github repo*/
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = MainActivity.class.getSimpleName();
@@ -55,6 +59,9 @@ public class MainActivity extends AppCompatActivity {
     private CompositeDisposable disposable = new CompositeDisposable();
     private List<PullRequest> prList;
     private ProgressDialog dialog;
+    private final int requestCode = 1080;
+    String state = Environment.getExternalStorageState();
+    private int tempSelected;
 
     @BindView(R.id.pr_list_recyclerView)
     RecyclerView prListRecyclerView;
@@ -89,8 +96,13 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view, final int position) {
                 dialog = Utility.createProgress(MainActivity.this);
-                if (isStoragePermissionGranted())
-                    getDiff(prList.get(position).getDiffUrl());
+                if (isMountedExternalStorage()) {
+                    if (isStoragePermissionGranted())
+                        getDiff(prList.get(position).getDiffUrl());
+                    else
+                        tempSelected = position;
+                } else
+                    Toast.makeText(MainActivity.this, "No SD card available!", Toast.LENGTH_LONG).show();
             }
         }));
 
@@ -99,6 +111,11 @@ public class MainActivity extends AppCompatActivity {
         getPullReqs();
     }
 
+    private boolean isMountedExternalStorage() {
+        return Environment.MEDIA_MOUNTED.equals(state);
+    }
+
+    //retrieves list of pull requests
     private void getPullReqs() {
         disposable.add(
                 mApiInterface.getPullRequests("open",
@@ -141,21 +158,35 @@ public class MainActivity extends AppCompatActivity {
                         .subscribeWith(new DisposableSingleObserver<ResponseBody>() {
                             @Override
                             public void onSuccess(ResponseBody responseBody) {
-                                dialog.dismiss();
-                                try {
-                                    File f = Environment.getExternalStorageDirectory();
-                                    File file = new File(f, "diff.txt");
-                                    FileOutputStream fileOutputStream = new FileOutputStream(file);
-                                    fileOutputStream.write(responseBody.bytes());
-                                    fileOutputStream.close();
-                                } catch (FileNotFoundException e) {
-                                    e.printStackTrace();
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                }
+                                Handler handler = new Handler();
+                                Runnable r = new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        try {
+                                            File f = Environment.getExternalStorageDirectory();
+                                            File file = new File(f, "diff.txt");
+                                            FileOutputStream fileOutputStream = new FileOutputStream(file);
+                                            fileOutputStream.write(responseBody.bytes());
+                                            fileOutputStream.close();
+                                        } catch (FileNotFoundException e) {
+                                            e.printStackTrace();
+                                        } catch (IOException e) {
+                                            e.printStackTrace();
+                                        }
 
-                                Intent splitView = new Intent(MainActivity.this, DiffSplitActivity.class);
-                                startActivity(splitView);
+                                        handler.post(new Runnable()
+                                        {
+                                            public void run() {
+                                                dialog.dismiss();
+                                                Intent splitView = new Intent(MainActivity.this, DiffSplitActivity.class);
+                                                startActivity(splitView);
+                                            }
+                                        });
+                                    }
+                                };
+
+                                Thread t = new Thread(r);
+                                t.start();
                             }
 
                             @Override
@@ -200,16 +231,12 @@ public class MainActivity extends AppCompatActivity {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
                     == PackageManager.PERMISSION_GRANTED) {
-                Log.v(TAG, "Permission is granted");
                 return true;
             } else {
-
-                Log.v(TAG, "Permission is revoked");
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, requestCode);
                 return false;
             }
         } else {
-            Log.v(TAG, "Permission is granted");
             return true;
         }
     }
@@ -217,9 +244,15 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            Log.v(TAG, "Permission: " + permissions[0] + "was " + grantResults[0]);
-        }
+        if (requestCode == this.requestCode)
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED)
+                getDiff(prList.get(tempSelected).getDiffUrl());
+            else
+                new AlertDialog.Builder(MainActivity.this)
+                        .setTitle(getString(R.string.dialog_title))
+                        .setMessage(getString(R.string.dialog_body))
+                        .setPositiveButton(getString(R.string.dialog_positive), null)
+                        .show();
     }
 
     @Override
